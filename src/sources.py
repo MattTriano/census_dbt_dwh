@@ -32,6 +32,18 @@ BFS_WEEKLY_DATA_DICTIONARY = FileDataSource(
     source_file_type=SourceFileType.DATA_DOC,
 )
 
+BFS_WEEKLY_NAICS_BY_INDUSTRY_SUBSECTOR_DATA = FileDataSource(
+    url="https://www.census.gov/econ/bfs/csv/naics3.csv",
+    source_file_type=SourceFileType.DATA,
+    file_name="weekly_bfs_naics_by_industry_subsector.csv",
+)
+
+BFS_WEEKLY_NAICS_BY_INDUSTRY_SECTOR_DATA = FileDataSource(
+    url="https://www.census.gov/econ/bfs/csv/naics2.csv",
+    source_file_type=SourceFileType.DATA,
+    file_name="weekly_bfs_naics_by_industry_sector.csv",
+)
+
 
 def all_file_data_sources() -> List[FileDataSource]:
     file_data_sources = []
