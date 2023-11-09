@@ -27,6 +27,16 @@ collect_data_to_file_from_url(
 )
 ```
 
+To refresh all sources defined in `src/sources.py`
+
+```python
+from sources import all_file_data_sources
+from file_utils import collect_data_to_file_from_url
+
+for fds in all_file_data_sources():
+    collect_data_to_file_from_url(url=fds.url, file_path=fds.file_path)
+```
+
 ## Steps Taken
 
 ```bash
@@ -45,3 +55,12 @@ Add `/data_raw/` and `/clean/` dirs to the `/models/` dir, and then add `.sql` f
 * file contents: `select * from read_csv("../data/dataset_name.csv", AUTO_DETECT=TRUE)`
 
 Then run `dbt run`
+
+## Data
+
+### Business Formation Statistics
+
+#### Annual County Data
+
+[Data page](https://www.census.gov/econ/bfs/data/county.html)
+
