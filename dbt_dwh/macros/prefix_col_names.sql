@@ -1,50 +1,47 @@
 {#
-Pivot values from columns to rows. Similar to pandas DataFrame melt() function.
+Prefix all column names (except for those in the exclude param) with a given prefix. 
 
-Example Usage: {{ prefix_col_names(relation=ref('users'), exclude=['id','created_at'], prefix='y') }}
+Example Usage: {{ prefix_col_names(relation=ref('users'), exclude=['id','created_at'], prefix='') }}
 
 Arguments:
     relation: Relation object, required.
-    exclude:  A list of columns to keep but exclude from the unpivot operation. Default is none.
+    exclude:  A list of columns to keep but exclude from the prefixing operation. Default is ''.
     prefix:   The string to prefix all col names with
 #}
 
-{% macro prefix_col_names(relation=none, exclude=none, prefix='y') -%}
-    {{ return(adapter.dispatch('prefix_col_name')(relation, exclude, prefix)) }}
+{% macro prefix_col_names(relation=none, exclude=none, prefix='') -%}
+    {{ return(adapter.dispatch('prefix_col_names')(relation, exclude, prefix)) }}
 {% endmacro %}
 
-{% macro default_prefix_col_name(relation=none, exclude=none, prefix='y') -%}
+{% macro default__prefix_col_names(relation=none, exclude=none, prefix='') -%}
 
     {% if not relation %}
-        {{ exceptions.raise_compiler_error("Error: argument `relation` is required for `prefix_col_name` macro.") }}
+        {{ exceptions.raise_compiler_error("Error: argument `relation` is required for `prefix_col_names` macro.") }}
     {% endif %}
 
   {%- set exclude = exclude if exclude is not none else [] %}
-
-  {%- set include_cols = [] %}
-
+  {%- set column_names = [] %}
   {%- set table_columns = {} %}
 
   {%- do table_columns.update({relation: []}) %}
 
-  {%- do dbt_utils._is_relation(relation, 'prefix_col_name') -%}
-  {%- do dbt_utils._is_ephemeral(relation, 'prefix_col_name') -%}
+  {%- do dbt_utils._is_relation(relation, 'prefix_col_names') -%}
+  {%- do dbt_utils._is_ephemeral(relation, 'prefix_col_names') -%}
   {%- set cols = adapter.get_columns_in_relation(relation) %}
 
   {%- for col in cols -%}
-    {%- if col.column.lower() not in exclude|map('lower') -%}
-      {% do include_cols.append(col) %}
+    {%- if col.name.lower() not in exclude|map('lower') -%}
+      {%- do column_names.append(prefix ~ col.name) -%}
+    {% else %}
+      {%- do column_names.append(col.name) -%}
     {%- endif %}
   {%- endfor %}
 
-     select
-      {%- for exclude_col in exclude %}
-        {{ exclude_col }},
-      {%- endfor %}
-      {%- for col in include_cols -%}
-        {{- prefix -}}{{- col -}}{% if not loop.last -%},{% endif -%}
-      {%- endfor -%} 
-    from {{ relation }}
+  select
+    {%- for col in cols %}
+      "{{ col.name }}" as {{ column_names[loop.index0] -}}{% if not loop.last -%},{% endif %}
+    {%- endfor %}
+  from {{ relation }}
 
 {%- endmacro %}
 
